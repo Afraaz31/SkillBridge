@@ -1,0 +1,5 @@
+const getHealth = (req, res) => {
+  res.status(200).json({ status: "ok", message: "SkillBridge API running" });
+};
+
+module.exports = { getHealth };
