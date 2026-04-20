@@ -20,7 +20,7 @@ const projectRoutes = require("./routes/project.routes");
 const roleRoutes = require("./routes/role.routes");
 
 app.use("/api", healthRoutes);
-app.use("/api", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api", skillRoutes);
 app.use("/api", projectRoutes);
 app.use("/api/roles", roleRoutes);
