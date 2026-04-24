@@ -75,4 +75,33 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getMe = (req, res) => {
+  res.status(200).json({ success: true, user: req.user });
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const { name, bio, targetRole, github, linkedin } = req.body;
+
+    // Only allow these fields to be updated
+    const fieldsToUpdate = { name, bio, targetRole, github, linkedin };
+
+    // Remove undefined fields so we don't overwrite with undefined
+    Object.keys(fieldsToUpdate).forEach((key) => {
+    if (fieldsToUpdate[key] === undefined) {
+      delete fieldsToUpdate[key];
+    }
+  });
+
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, fieldsToUpdate, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile };
