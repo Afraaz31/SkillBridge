@@ -18,12 +18,16 @@ const authRoutes = require("./routes/auth.routes");
 const skillRoutes = require("./routes/skill.routes");
 const projectRoutes = require("./routes/project.routes");
 const roleRoutes = require("./routes/role.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+const gapAnalysisRoutes = require("./routes/gapAnalysis.routes");
 
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", skillRoutes);
 app.use("/api", projectRoutes);
 app.use("/api/roles", roleRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/gap-analysis", gapAnalysisRoutes);
 
 // Not found middleware (catches unknown routes)
 const notFound = require("./middleware/notFound");
