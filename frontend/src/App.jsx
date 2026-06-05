@@ -1,16 +1,21 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Skills from "./pages/Skills";
+import Projects from "./pages/Projects";
+import GapAnalysis from "./pages/GapAnalysis";
+import Profile from "./pages/Profile";
+import AppLayout from "./layouts/AppLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 
 // Redirect to dashboard if user is already logged in
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  return user ? <Navigate to="/" /> : children;
+  return user ? <Navigate to="/dashboard" /> : children;
 };
-// user exists (logged in)? → show <Navigate to="/" /> which redirects to dashboard
-// user is null (not logged in)? → show children which is <Login />
 
 function App() {
   const { loading } = useAuth();
@@ -25,6 +30,7 @@ function App() {
 
   return (
     <Routes>
+      {/* Public routes */}
       <Route
         path="/login"
         element={
@@ -41,14 +47,24 @@ function App() {
           </PublicRoute>
         }
       />
+
+      {/* Protected routes wrapped in AppLayout */}
       <Route
-        path="/"
         element={
-          <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <h1 className="text-3xl font-bold text-gray-700">Dashboard coming soon</h1>
-          </div>
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/gap-analysis" element={<GapAnalysis />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
+
+      {/* Default route → redirect to dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" />} />
     </Routes>
   );
 }
