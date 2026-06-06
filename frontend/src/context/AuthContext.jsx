@@ -53,8 +53,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Update user in context (e.g. after profile edit) so UI reflects changes immediately
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
