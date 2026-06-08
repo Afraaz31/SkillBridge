@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const categories = ["All", "Frontend", "Backend", "Database", "Tools", "DSA"];
 
 const Skills = () => {
+  const { showToast } = useToast();
   const [skills, setSkills] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -36,17 +39,14 @@ const Skills = () => {
       await api.delete(`/skills/${skill._id}`);
       // Remove from list locally (no need to re-fetch)
       setSkills((prev) => prev.filter((s) => s._id !== skill._id));
+      showToast("Skill deleted", "success");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete skill");
+      showToast(err.response?.data?.message || "Failed to delete skill", "error");
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner fullPage />;
   }
 
   // Show full-page error only if the initial load failed (no skills loaded)
@@ -113,9 +113,10 @@ const Skills = () => {
       {skills.length === 0 ? (
         // No skills at all yet
         <div className="bg-white rounded-lg shadow-sm p-10 text-center">
-          <p className="text-gray-800 font-medium mb-1">No skills yet</p>
+          <div className="text-5xl mb-3">🎯</div>
+          <p className="text-gray-800 font-medium mb-1">No skills added yet</p>
           <p className="text-gray-500 text-sm mb-4">
-            Start tracking your learning by adding your first skill.
+            Start tracking your first skill!
           </p>
           <button
             onClick={() => setShowModal(true)}
@@ -153,10 +154,11 @@ const Skills = () => {
             setShowModal(false);
             setEditingSkill(null);
           }}
-          onSuccess={() => {
+          onSuccess={(msg) => {
             setShowModal(false);
             setEditingSkill(null);
             fetchSkills();
+            showToast(msg, "success");
           }}
         />
       )}
@@ -255,6 +257,7 @@ const AddSkillModal = ({ skillToEdit, onClose, onSuccess }) => {
   const [evidenceInput, setEvidenceInput] = useState("");
   const [evidenceLinks, setEvidenceLinks] = useState(skillToEdit?.evidenceLinks || []);
   const [error, setError] = useState("");
+  const [nameError, setNameError] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Update form fields
@@ -279,6 +282,14 @@ const AddSkillModal = ({ skillToEdit, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Client-side validation
+    if (!form.name.trim()) {
+      setNameError("Skill name is required");
+      return;
+    }
+    setNameError("");
+
     setSaving(true);
     try {
       if (isEditing) {
@@ -286,7 +297,7 @@ const AddSkillModal = ({ skillToEdit, onClose, onSuccess }) => {
       } else {
         await api.post("/skills", { ...form, evidenceLinks });
       }
-      onSuccess();
+      onSuccess(isEditing ? "Skill updated" : "Skill added");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save skill");
       setSaving(false);
@@ -319,10 +330,12 @@ const AddSkillModal = ({ skillToEdit, onClose, onSuccess }) => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  nameError ? "border-red-400" : "border-gray-300"
+                }`}
                 placeholder="e.g. React"
               />
+              {nameError && <p className="text-red-600 text-xs mt-1">{nameError}</p>}
             </div>
 
             {/* Category */}

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Projects = () => {
+  const { showToast } = useToast();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,17 +35,14 @@ const Projects = () => {
     try {
       await api.delete(`/projects/${project._id}`);
       setProjects((prev) => prev.filter((p) => p._id !== project._id));
+      showToast("Project deleted", "success");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete project");
+      showToast(err.response?.data?.message || "Failed to delete project", "error");
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner fullPage />;
   }
 
   // Full-page error only if initial load failed
@@ -81,9 +81,10 @@ const Projects = () => {
       {/* Projects grid / empty state */}
       {projects.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-10 text-center">
-          <p className="text-gray-800 font-medium mb-1">No projects yet</p>
+          <div className="text-5xl mb-3">🚀</div>
+          <p className="text-gray-800 font-medium mb-1">No projects added yet</p>
           <p className="text-gray-500 text-sm mb-4">
-            Showcase your work by adding your first project.
+            Showcase your work by adding your first project!
           </p>
           <button
             onClick={() => setShowModal(true)}
@@ -116,10 +117,11 @@ const Projects = () => {
             setShowModal(false);
             setEditingProject(null);
           }}
-          onSuccess={() => {
+          onSuccess={(msg) => {
             setShowModal(false);
             setEditingProject(null);
             fetchProjects();
+            showToast(msg, "success");
           }}
         />
       )}
@@ -240,6 +242,7 @@ const ProjectModal = ({ projectToEdit, onClose, onSuccess }) => {
     challenges: projectToEdit?.challenges || "",
   });
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   const handleChange = (e) => {
@@ -249,6 +252,17 @@ const ProjectModal = ({ projectToEdit, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Client-side validation
+    const errors = {};
+    if (!form.title.trim()) errors.title = "Title is required";
+    if (!form.description.trim()) errors.description = "Description is required";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+
     setSaving(true);
 
     // Convert comma-separated techStack string into an array
@@ -267,7 +281,7 @@ const ProjectModal = ({ projectToEdit, onClose, onSuccess }) => {
       } else {
         await api.post("/projects", payload);
       }
-      onSuccess();
+      onSuccess(isEditing ? "Project updated" : "Project added");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save project");
       setSaving(false);
@@ -300,10 +314,12 @@ const ProjectModal = ({ projectToEdit, onClose, onSuccess }) => {
                 name="title"
                 value={form.title}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  fieldErrors.title ? "border-red-400" : "border-gray-300"
+                }`}
                 placeholder="e.g. SkillBridge"
               />
+              {fieldErrors.title && <p className="text-red-600 text-xs mt-1">{fieldErrors.title}</p>}
             </div>
 
             {/* Description */}
@@ -313,11 +329,15 @@ const ProjectModal = ({ projectToEdit, onClose, onSuccess }) => {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                required
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  fieldErrors.description ? "border-red-400" : "border-gray-300"
+                }`}
                 placeholder="What is this project about?"
               ></textarea>
+              {fieldErrors.description && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.description}</p>
+              )}
             </div>
 
             {/* Tech stack */}

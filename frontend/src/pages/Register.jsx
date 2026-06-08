@@ -1,25 +1,42 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { validateEmail, validatePassword, validateRequired } from "../utils/validators";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const validateForm = () => {
+    const errors = {};
+    const nameErr = validateRequired(name, "Name");
+    const emailErr = validateEmail(email);
+    const passErr = validatePassword(password);
+    if (nameErr) errors.name = nameErr;
+    if (emailErr) errors.email = emailErr;
+    if (passErr) errors.password = passErr;
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       await register(name, email, password);
+      showToast("Account created successfully!", "success");
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      showToast(err.response?.data?.message || "Registration failed", "error");
     } finally {
       setLoading(false);
     }
@@ -31,21 +48,19 @@ const Register = () => {
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-2">SkillBridge</h1>
         <p className="text-center text-gray-500 mb-6">Create your account</p>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                fieldErrors.name ? "border-red-400" : "border-gray-300"
+              }`}
               placeholder="Your name"
             />
+            {fieldErrors.name && <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>}
           </div>
 
           <div>
@@ -54,10 +69,12 @@ const Register = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                fieldErrors.email ? "border-red-400" : "border-gray-300"
+              }`}
               placeholder="you@example.com"
             />
+            {fieldErrors.email && <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -66,11 +83,14 @@ const Register = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                fieldErrors.password ? "border-red-400" : "border-gray-300"
+              }`}
               placeholder="At least 6 characters"
             />
+            {fieldErrors.password && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.password}</p>
+            )}
           </div>
 
           <button

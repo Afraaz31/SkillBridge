@@ -1,6 +1,8 @@
 import { useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { validateRequired } from "../utils/validators";
 
 const roleOptions = [
   "Frontend Developer",
@@ -12,6 +14,7 @@ const roleOptions = [
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -20,9 +23,8 @@ const Profile = () => {
     github: user?.github || "",
     linkedin: user?.linkedin || "",
   });
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,16 +32,23 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccess("");
-    setError("");
+
+    // Client-side validation
+    const nameErr = validateRequired(form.name, "Name");
+    if (nameErr) {
+      setFieldErrors({ name: nameErr });
+      return;
+    }
+    setFieldErrors({});
+
     setSaving(true);
     try {
       const res = await api.put("/auth/profile", form);
       // Update context so sidebar / other UI reflect changes immediately
       updateUser(res.data.user);
-      setSuccess("Profile updated successfully");
+      showToast("Profile updated successfully", "success");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update profile");
+      showToast(err.response?.data?.message || "Failed to update profile", "error");
     } finally {
       setSaving(false);
     }
@@ -50,14 +59,7 @@ const Profile = () => {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Profile</h1>
 
       <div className="bg-white rounded-lg shadow-sm p-6">
-        {success && (
-          <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm">{success}</div>
-        )}
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Email (read-only) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -78,9 +80,11 @@ const Profile = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                fieldErrors.name ? "border-red-400" : "border-gray-300"
+              }`}
             />
+            {fieldErrors.name && <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>}
           </div>
 
           {/* Target Role */}

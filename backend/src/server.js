@@ -1,15 +1,24 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const helmet = require("helmet");
 
 // Load environment variables from .env file
-dotenv.config(); // reads your .env file 
+dotenv.config(); // reads your .env file
+
+const { CLIENT_URL } = require("./config/env");
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(helmet()); // sets secure HTTP headers
+app.use(cors({ origin: CLIENT_URL })); // allow only the frontend URL (or * in dev)
 app.use(express.json());
+
+// Root route — used by Render health check
+app.get("/", (req, res) => {
+  res.status(200).send("SkillBridge API is running");
+});
 
 // Routes
 
