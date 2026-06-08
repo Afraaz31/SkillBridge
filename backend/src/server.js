@@ -12,7 +12,12 @@ const app = express();
 
 // Middleware
 app.use(helmet()); // sets secure HTTP headers
-app.use(cors({ origin: CLIENT_URL })); // allow only the frontend URL (or * in dev)
+app.use(
+  cors({
+    origin: [CLIENT_URL, "http://localhost:5173"], // production frontend + local dev
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Root route — used by Render health check
