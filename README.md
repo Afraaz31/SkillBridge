@@ -21,6 +21,19 @@ A full-stack MERN career development platform that helps students track skills, 
 
 ---
 
+## 📸 Screenshots
+
+### Dashboard — Readiness Score, Weak Areas & Next Steps
+![Dashboard](screenshots/dashboard.png)
+
+### Gap Analysis — Matched, Missing & Weak Skills
+![Gap Analysis](screenshots/gap-analysis.png)
+
+### Skill Tracking — Categories, Levels & Status
+![My Skills](screenshots/skills.png)
+
+---
+
 ## 💡 Why SkillBridge?
 
 Most students learn randomly, build incomplete projects, and have no way to measure if they're actually job-ready. SkillBridge solves this by combining **skill tracking + project tracking + readiness scoring + gap analysis** in one platform.
