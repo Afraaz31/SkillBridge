@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
@@ -23,32 +24,29 @@ const AppLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Mobile top bar (visible only below lg) */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-30">
+      {/* Mobile top bar (visible only below md) */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-30">
         <h1 className="text-lg font-bold text-blue-600">SkillBridge</h1>
         <button
           onClick={() => setSidebarOpen(true)}
           className="text-gray-600 hover:text-gray-900"
           aria-label="Open menu"
         >
-          {/* Hamburger icon */}
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <Menu className="w-6 h-6" />
         </button>
       </div>
 
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-[220px] bg-white border-r border-gray-200 flex flex-col z-50 transform transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 h-screen w-[220px] bg-white border-r border-gray-200 flex flex-col z-50 transform transition-transform duration-200 md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -57,10 +55,10 @@ const AppLayout = () => {
           {/* Close button (mobile only) */}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-400 hover:text-gray-600 text-xl"
+            className="md:hidden text-gray-400 hover:text-gray-600"
             aria-label="Close menu"
           >
-            ×
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -95,7 +93,7 @@ const AppLayout = () => {
       </aside>
 
       {/* Main content — offset for sidebar on desktop, for top bar on mobile */}
-      <main className="lg:ml-[220px] pt-14 lg:pt-0 p-4 sm:p-6 lg:p-8">
+      <main className="md:ml-[220px] pt-14 md:pt-0 p-4 sm:p-6 md:p-8">
         <Outlet />
       </main>
     </div>

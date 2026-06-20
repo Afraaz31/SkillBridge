@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -15,6 +16,12 @@ const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   return user ? <Navigate to="/dashboard" /> : children;
+};
+
+// Landing page for logged-out visitors; logged-in users go straight to dashboard
+const HomeRoute = () => {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" /> : <Landing />;
 };
 
 function App() {
@@ -63,8 +70,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
       </Route>
 
-      {/* Default route → redirect to dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      {/* Home → Landing page for visitors, dashboard for logged-in users */}
+      <Route path="/" element={<HomeRoute />} />
     </Routes>
   );
 }
